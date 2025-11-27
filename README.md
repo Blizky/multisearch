@@ -258,3 +258,8 @@ This fully resets the tool to a clean state.
     "url": "https://example.com/search/%s?type=video",
     "enabled": true
   }
+
+## License
+**© 2025 Alex — Licensed under CC BY-NC-SA 4.0**<br>
+Free for personal use. Not for commercial use.<br>
+https://creativecommons.org/licenses/by-nc-sa/4.0/
