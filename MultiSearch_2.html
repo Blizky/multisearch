@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Multi-Search</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- Favicon: green eye with cat pupil -->
+<link rel="icon" type="image/svg+xml" href='data:image/svg+xml,
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <circle cx="32" cy="32" r="30" fill="%23A8FF5A" stroke="%23000000" stroke-width="5"/>
+  <path d="M32 10 C22 32 22 32 32 54 C42 32 42 32 32 10 Z" fill="%23000000"/>
+</svg>'>
+
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;600&family=Roboto+Slab:wght@600&family=Bangers&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --pc-pink:#F5054F;
+    --pc-green:#A8FF5A;
+    --pc-purple:#6200EE;
+    --pc-ink:#0A0019;
+    --pc-ivory:#FDFDF9;
+
+    --bg-main: radial-gradient(circle at top, #1a0838 0%, #05000c 40%, #020008 100%);
+    --text: var(--pc-ivory);
+    --muted:#c7c3d5;
+    --card-bg: rgba(10,0,25,.78);
+    --chip-bg:#0E021C;
+    --chip-off: rgba(255,255,255,0.06);
+    --input-bg:#120327;
+    --border-soft: rgba(168,255,90,.35);
+    --border-faint: rgba(255,255,255,.16);
+    --shadow-soft: 0 18px 45px rgba(0,0,0,.65);
+  }
+
+  body.theme-light{
+    --bg-main: radial-gradient(circle at top, #ffffff 0%, #f3f1ea 40%, #e3e0d7 100%);
+    --text:#121019;
+    --muted:#4a4850;
+    --card-bg: rgba(255,255,255,.90);
+    --chip-bg:#f4f2ea;
+    --chip-off: rgba(0,0,0,0.06);
+    --input-bg:#ffffff;
+    --border-soft: rgba(98,0,238,.35);
+    --border-faint: rgba(0,0,0,.12);
+    --shadow-soft: 0 12px 35px rgba(10,0,25,.16);
+  }
+
+  *{box-sizing:border-box}
+  html,body{height:100%}
+
+  body{
+    margin:0;
+    font-family: Roboto, sans-serif;
+    color:var(--text);
+    background: var(--bg-main);
+    
+	display:flex;
+    align-items:flex-start;
+    justify-content:center;
+    padding:32px;
+    transition: background .35s ease, color .2s ease;
+  }
+
+  .shell{
+    width:min(1040px,100%);
+    background: var(--card-bg);
+    border-radius:22px;
+    padding:20px 22px 24px;
+    box-shadow: var(--shadow-soft);
+    border:1px solid rgba(168,255,90,.25);
+    backdrop-filter: blur(10px);
+  }
+
+  /* HEADER */
+  .top-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:12px;
+    margin-bottom:14px;
+  }
+
+  .title-wrap{
+    display:flex;
+    align-items:baseline;
+    gap:10px;
+  }
+
+.title{
+  margin:0;
+  font-family: "Bangers", cursive;
+  font-size: clamp(32px,4vw,42px);
+  font-weight:400;
+  letter-spacing:.02em;
+  color: var(--pc-pink);
+}
+
+  .version{
+    font-size:13px;
+    opacity:.55;
+    font-family:monospace;
+  }
+
+  .controls{
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+
+  .toggle{
+    display:flex;
+    gap:4px;
+    background:var(--chip-bg);
+    padding:4px;
+    border-radius:999px;
+    border:1px solid var(--border-faint);
+  }
+  .toggle button{
+    border:0;
+    padding:7px 12px;
+    border-radius:999px;
+    cursor:pointer;
+    background:none;
+    font-weight:600;
+    color:var(--text);
+    font-size:13px;
+  }
+  .toggle button.active{
+    background:rgba(98,0,238,.22);
+    border:1px solid rgba(98,0,238,.55);
+  }
+
+  .btn-ghost{
+    border-radius:14px;
+    border:1px solid var(--border-faint);
+    background:rgba(0,0,0,0.08);
+    color:var(--text);
+    padding:7px 12px;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  body.theme-light .btn-ghost{
+    background:rgba(255,255,255,0.85);
+  }
+  .btn-ghost span.icon{
+    font-size:14px;
+  }
+
+  .subtitle{
+    margin:0 0 10px;
+    font-size:14px;
+    color:var(--muted);
+  }
+
+  /* GROUPS + CHIPS */
+  .groups{
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px,1fr));
+    gap:10px 18px;
+    margin-bottom:12px;
+  }
+
+  .group{
+    min-width:0;
+  }
+
+  .group-title{
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.16em;
+    color:var(--muted);
+    margin-bottom:4px;
+  }
+
+  .chips{
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+  }
+
+  .chip{
+    padding:6px 10px;
+    border-radius:999px;
+    border:1px solid var(--border-faint);
+    background:var(--chip-bg);
+    font-size:12px;
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    user-select:none;
+  }
+  .chip.off{
+    opacity:.45;
+    background:var(--chip-off);
+  }
+  .chip-dot{
+    width:7px;
+    height:7px;
+    border-radius:50%;
+    background:var(--pc-green);
+  }
+  .chip.off .chip-dot{
+    background:transparent;
+    border:1px solid rgba(255,255,255,.3);
+  }
+
+  .tip-line{
+    margin:4px 0 10px;
+    font-size:12px;
+    color:var(--muted);
+  }
+
+  .divider{
+    height:1px;
+    background:linear-gradient(90deg, transparent, var(--border-faint), transparent);
+    margin:10px 0 18px;
+  }
+
+  /* SEARCH CARD */
+  .search-card{
+    border-radius:18px;
+    border:1px solid var(--border-soft);
+    background: radial-gradient(circle at top left, rgba(168,255,90,0.10) 0%, transparent 55%);
+    padding:16px 16px 14px;
+  }
+
+  .search-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    align-items:center;
+  }
+
+  .input-wrap{
+    position:relative;
+    flex:1 1 280px;
+    min-width:240px;
+  }
+  .input-wrap input{
+    width:100%;
+    padding:12px 14px 12px 38px;
+    border-radius:14px;
+    border:1.5px solid var(--border-soft);
+    background:var(--input-bg);
+    color:var(--text);
+    font-size:16px;
+  }
+  .input-wrap input::placeholder{
+    color:#9a96a1;
+  }
+
+  .search-icon{
+    position:absolute;
+    left:11px;
+    top:50%;
+    transform:translateY(-50%);
+    width:18px;
+    height:18px;
+    color:var(--muted);
+  }
+
+  .btn-main{
+    border-radius:14px;
+    border:1.5px solid var(--border-faint);
+    padding:10px 14px;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+    background:var(--chip-bg);
+    color:var(--text);
+    display:flex;
+    align-items:center;
+    gap:6px;
+    min-width:78px;
+    justify-content:center;
+  }
+  .btn-main span.dot{
+    width:7px;
+    height:7px;
+    border-radius:50%;
+  }
+  .btn-main.videos span.dot{
+    background:var(--pc-green);
+  }
+  .btn-main.photos span.dot{
+    background:var(--pc-pink);
+  }
+  .btn-main.public span.dot{
+    background:var(--pc-purple);
+  }
+  .btn-main.pngs span.dot{
+    background:#ffffff;
+  }
+
+  .search-hint{
+    margin-top:6px;
+    font-size:12px;
+    color:var(--muted);
+  }
+
+  /* MANAGE MODAL */
+  .modal-backdrop{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.55);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:40;
+  }
+  .modal-backdrop.show{
+    display:flex;
+  }
+
+  .modal{
+    width:min(620px, 100% - 32px);
+    max-height:80vh;
+    background:var(--card-bg);
+    border-radius:18px;
+    border:1px solid var(--border-soft);
+    padding:16px 18px 14px;
+    box-shadow:var(--shadow-soft);
+    display:flex;
+    flex-direction:column;
+  }
+
+  .modal-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+    margin-bottom:10px;
+  }
+  .modal-title{
+    margin:0;
+    font-size:16px;
+    font-weight:600;
+  }
+
+  .modal-body{
+    flex:1;
+    overflow:auto;
+    padding-right:4px;
+  }
+
+  .site-row{
+    display:grid;
+    grid-template-columns: minmax(90px,1.2fr) minmax(120px,2.2fr) minmax(80px,0.9fr) auto;
+    gap:6px;
+    align-items:center;
+    padding:4px 0;
+    border-bottom:1px solid rgba(255,255,255,0.06);
+  }
+  body.theme-light .site-row{
+    border-bottom:1px solid rgba(0,0,0,0.06);
+  }
+
+  .site-row input[type=text],
+  .site-row select{
+    width:100%;
+    padding:5px 7px;
+    border-radius:6px;
+    border:1px solid var(--border-faint);
+    background:var(--chip-bg);
+    color:var(--text);
+    font-size:12px;
+  }
+
+  .site-row .small-check{
+    display:flex;
+    align-items:center;
+    gap:4px;
+    font-size:11px;
+    color:var(--muted);
+  }
+
+  .site-row .small-check input{
+    width:13px;
+    height:13px;
+  }
+
+  .site-row button.remove{
+    border-radius:999px;
+    border:1px solid rgba(255,60,80,.5);
+    background:rgba(60,0,10,0.5);
+    color:#ffd6dd;
+    padding:3px 7px;
+    font-size:11px;
+    cursor:pointer;
+  }
+  body.theme-light .site-row button.remove{
+    background:#fff1f3;
+    color:#7b0a1e;
+  }
+
+  .modal-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-top:8px;
+    gap:10px;
+    font-size:11px;
+    color:var(--muted);
+  }
+
+  .btn-small{
+    border-radius:999px;
+    border:1px solid var(--border-faint);
+    background:var(--chip-bg);
+    color:var(--text);
+    font-size:12px;
+    padding:5px 10px;
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    gap:4px;
+  }
+
+  @media (max-width:720px){
+    body{
+      padding:16px;
+      align-items:flex-start;
+    }
+    .shell{
+      padding:16px 14px 18px;
+    }
+    .site-row{
+      grid-template-columns: minmax(90px,1.2fr) minmax(120px,2fr);
+      grid-template-rows:auto auto;
+      grid-auto-flow:row;
+    }
+    .site-row .small-check{
+      grid-column:1/2;
+    }
+    .site-row button.remove{
+      grid-column:2/3;
+      justify-self:end;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <!-- HEADER BAR -->
+  <header class="top-row">
+    <div class="title-wrap">
+      <h1 class="title">MultiSearch</h1>
+      <span class="version">20251126</span>
+    </div>
+    <div class="controls">
+      <div class="toggle">
+        <button id="btn-night" class="active">Night</button>
+        <button id="btn-day">Day</button>
+      </div>
+      <button class="btn-ghost" id="btn-manage">
+        <span class="icon">⚙️</span><span>Manage sites</span>
+      </button>
+    </div>
+  </header>
+
+  <p class="subtitle">Search all your favorite free media sites at once — videos, photos, public domain and PNG cutouts.</p>
+
+  <!-- GROUPS / CHIPS -->
+  <section class="groups">
+    <div class="group">
+      <div class="group-title">Videos</div>
+      <div class="chips" id="chips-videos"></div>
+    </div>
+    <div class="group">
+      <div class="group-title">Photos</div>
+      <div class="chips" id="chips-photos"></div>
+    </div>
+    <div class="group">
+      <div class="group-title">Public domain</div>
+      <div class="chips" id="chips-public"></div>
+    </div>
+    <div class="group">
+      <div class="group-title">PNGs (transparent)</div>
+      <div class="chips" id="chips-png"></div>
+    </div>
+  </section>
+
+  <p class="tip-line">
+    Tip: click a site name to enable/disable it for that category. Only enabled sites will open.
+  </p>
+
+  <div class="divider"></div>
+
+  <!-- SEARCH CARD -->
+  <section class="search-card">
+    <div class="search-row">
+      <label class="input-wrap">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+          <circle cx="11" cy="11" r="7"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input id="q" type="text" placeholder="Search term (e.g., forest horror)" onkeydown="handleKey(event)">
+      </label>
+
+      <button class="btn-main photos" onclick="searchCategory('photos')">
+        <span class="dot"></span><span>Photos</span>
+      </button>
+
+      <button class="btn-main videos" onclick="searchCategory('videos')">
+        <span class="dot"></span><span>Videos</span>
+      </button>
+
+      <button class="btn-main public" onclick="searchCategory('public')">
+        <span class="dot"></span><span>Public</span>
+      </button>
+
+      <button class="btn-main pngs" onclick="searchCategory('png')">
+        <span class="dot"></span><span>PNGs</span>
+      </button>
+
+    </div>
+    <div class="search-hint">Press Enter to search Videos, or click a button to choose a category.</div>
+  </section>
+</div>
+
+<!-- MANAGE SITES MODAL -->
+<div class="modal-backdrop" id="modal-backdrop">
+  <div class="modal">
+    <div class="modal-head">
+      <h2 class="modal-title">Manage search sites</h2>
+      <button class="btn-small" id="btn-close-modal">Close</button>
+    </div>
+    <div class="modal-body" id="sites-container">
+      <!-- Rows injected here -->
+    </div>
+    <div class="modal-foot">
+      <button class="btn-small" id="btn-add-site">+ Add site</button>
+      <button class="btn-small" id="btn-save-sites">Save</button>
+      <span>Use <code>%S</code> in the URL where the search term should go.</span>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---------- DATA & STORAGE ---------- */
+
+const KEY_SITES = "ms-sites-v4";
+
+const DEFAULT_SITES = [
+  // VIDEOS
+  { id:"pixabay_v",  name:"Pixabay (video)", category:"videos",
+    url:"https://pixabay.com/videos/search/%S/", enabled:true },
+  { id:"pexels_v",   name:"Pexels (video)", category:"videos",
+    url:"https://www.pexels.com/search/videos/%S/", enabled:true },
+  { id:"mixkit_v",   name:"Mixkit", category:"videos",
+    url:"https://mixkit.co/free-stock-video/%S/", enabled:true },
+  { id:"videvo_v",   name:"Videvo (video)", category:"videos",
+    url:"https://www.videvo.net/search/%S/", enabled:true },
+  { id:"freepik_v",  name:"Freepik (FREE video)", category:"videos",
+    url:"https://www.freepik.com/search?format=search&last_filter=selection&last_value=1&query=%S&selection=1&type=video",
+    enabled:true },
+
+  // PHOTOS
+  { id:"pixabay_p",  name:"Pixabay (photo)", category:"photos",
+    url:"https://pixabay.com/images/search/%S/", enabled:true },
+  { id:"pexels_p",   name:"Pexels (photo)", category:"photos",
+    url:"https://www.pexels.com/search/%S/", enabled:true },
+  { id:"unsplash_p", name:"Unsplash", category:"photos",
+    url:"https://unsplash.com/s/photos/%S", enabled:true },
+  { id:"videvo_p",   name:"Videvo (stills)", category:"photos",
+    url:"https://www.videvo.net/search/%S/?media_type=photo", enabled:false },
+  { id:"flickr_p",   name:"Flickr (CU)", category:"photos",
+    url:"https://www.flickr.com/search/?text=%S&license=4,5,6,9,10,11,12,13&content_types=0&media=photos&safe_search=1",
+    enabled:true },
+  { id:"freepik_p",  name:"Freepik (FREE photos)", category:"photos",
+    url:"https://www.freepik.com/search?format=search&last_filter=selection&last_value=1&query=%S&selection=1&type=photo",
+    enabled:true },
+
+  // PUBLIC DOMAIN
+  { id:"picryl_pd",  name:"Picryl (PD)", category:"public",
+    url:"https://picryl.com/search?q=%S", enabled:true },
+  { id:"commons_pd", name:"Wikimedia Commons", category:"public",
+    url:"https://commons.wikimedia.org/w/index.php?search=%S&title=Special%3AMediaSearch&type=image",
+    enabled:true },
+  { id:"rawpixel_pd",name:"RawPixel (PD)", category:"public",
+    url:"https://www.rawpixel.com/search/%S?public_domain=1", enabled:true },
+  { id:"openverse_pd",name:"OpenVerse (CC0)", category:"public",
+    url:"https://openverse.org/search?q=%S&license_type=cc0", enabled:true },
+
+  // PNGs
+  { id:"kindpng_png", name:"KindPNG", category:"png",
+    url:"https://www.kindpng.com/free/%S/", enabled:true },
+  { id:"pngkey_png",  name:"PNGKey", category:"png",
+    url:"https://www.pngkey.com/", enabled:true },
+  { id:"pngegg_png",  name:"PngEgg", category:"png",
+    url:"https://www.pngegg.com/en/search?q=%S", enabled:true }
+];
+
+let sites = loadSites();
+
+/* ---------- STORAGE HELPERS ---------- */
+
+function loadSites(){
+  try{
+    const raw = localStorage.getItem(KEY_SITES);
+    if(!raw) return structuredClone(DEFAULT_SITES);
+    const parsed = JSON.parse(raw);
+    if(!Array.isArray(parsed) || !parsed.length) return structuredClone(DEFAULT_SITES);
+    return parsed;
+  }catch(e){
+    console.warn("Failed to load sites, using defaults", e);
+    return structuredClone(DEFAULT_SITES);
+  }
+}
+
+function saveSites(){
+  try{
+    localStorage.setItem(KEY_SITES, JSON.stringify(sites));
+  }catch(e){
+    console.warn("Failed to save sites", e);
+  }
+}
+
+/* ---------- RENDER CHIPS ---------- */
+
+function renderChips(){
+  const containers = {
+    videos: document.getElementById("chips-videos"),
+    photos: document.getElementById("chips-photos"),
+    public: document.getElementById("chips-public"),
+    png:    document.getElementById("chips-png")
+  };
+  Object.values(containers).forEach(c => c.innerHTML = "");
+
+  for(const s of sites){
+    const parent = containers[s.category];
+    if(!parent) continue;
+    const span = document.createElement("span");
+    span.className = "chip" + (s.enabled ? "" : " off");
+    span.dataset.siteId = s.id;
+    span.innerHTML = `<span class="chip-dot"></span><span>${s.name}</span>`;
+    span.onclick = () => toggleSiteEnabled(s.id);
+    parent.appendChild(span);
+  }
+}
+
+function toggleSiteEnabled(id){
+  const idx = sites.findIndex(s => s.id === id);
+  if(idx === -1) return;
+  sites[idx].enabled = !sites[idx].enabled;
+  saveSites();
+  renderChips();
+}
+
+/* ---------- SEARCH ---------- */
+
+function searchCategory(category){
+  const q = document.getElementById("q").value.trim();
+  if(!q) return;
+  const encoded = encodeURIComponent(q);
+
+  const list = sites.filter(s => s.category === category && s.enabled);
+  if(!list.length){
+    alert("No sites enabled for this category.");
+    return;
+  }
+
+  for(const s of list){
+    let url = s.url;
+    if(url.includes("%S")){
+      url = url.replace(/%S/g, encoded);
+    }
+    window.open(url, "_blank");
+  }
+}
+
+function handleKey(e){
+  if(e.key === "Enter"){
+    searchCategory("videos");
+  }
+}
+
+/* ---------- THEME TOGGLE ---------- */
+
+const body = document.body;
+const btnNight = document.getElementById("btn-night");
+const btnDay   = document.getElementById("btn-day");
+
+function setTheme(mode){
+  if(mode === "light"){
+    body.classList.add("theme-light");
+    btnDay.classList.add("active");
+    btnNight.classList.remove("active");
+  }else{
+    body.classList.remove("theme-light");
+    btnNight.classList.add("active");
+    btnDay.classList.remove("active");
+  }
+  localStorage.setItem("ms-theme", mode);
+}
+
+btnNight.onclick = () => setTheme("dark");
+btnDay.onclick   = () => setTheme("light");
+
+setTheme(localStorage.getItem("ms-theme") || "dark");
+
+/* ---------- MANAGE MODAL ---------- */
+
+const backdrop = document.getElementById("modal-backdrop");
+const btnManage = document.getElementById("btn-manage");
+const btnCloseModal = document.getElementById("btn-close-modal");
+const btnAddSite = document.getElementById("btn-add-site");
+const btnSaveSites = document.getElementById("btn-save-sites");
+const sitesContainer = document.getElementById("sites-container");
+
+btnManage.onclick = () => {
+  renderManageRows();
+  backdrop.classList.add("show");
+};
+
+btnCloseModal.onclick = () => {
+  backdrop.classList.remove("show");
+};
+
+backdrop.addEventListener("click", (e)=>{
+  if(e.target === backdrop){
+    backdrop.classList.remove("show");
+  }
+});
+
+function renderManageRows(){
+  sitesContainer.innerHTML = "";
+  sites.forEach((s, index) => addRowForSite(s, index));
+}
+
+function addRowForSite(site, index){
+  const row = document.createElement("div");
+  row.className = "site-row";
+  row.dataset.index = index;
+
+  row.innerHTML = `
+    <input type="text" class="mf-name" value="${site.name.replace(/"/g,'&quot;')}" />
+    <input type="text" class="mf-url" value="${site.url.replace(/"/g,'&quot;')}" />
+    <select class="mf-cat">
+      <option value="videos"${site.category==="videos"?" selected":""}>Videos</option>
+      <option value="photos"${site.category==="photos"?" selected":""}>Photos</option>
+      <option value="public"${site.category==="public"?" selected":""}>Public</option>
+      <option value="png"${site.category==="png"?" selected":""}>PNGs</option>
+    </select>
+    <div style="display:flex;align-items:center;gap:6px;justify-content:flex-end;">
+      <label class="small-check">
+        <input type="checkbox" class="mf-enabled"${site.enabled?" checked":""}/> on
+      </label>
+      <button class="remove">✕</button>
+    </div>
+  `;
+
+  row.querySelector("button.remove").onclick = () => {
+    const idx = Number(row.dataset.index);
+    if(!Number.isNaN(idx)){
+      sites.splice(idx,1);
+      renderManageRows();
+    }
+  };
+
+  sitesContainer.appendChild(row);
+}
+
+btnAddSite.onclick = () => {
+  sites.push({
+    id: "custom_" + Date.now(),
+    name: "New site",
+    url: "https://example.com/search/%S",
+    category: "photos",
+    enabled: true
+  });
+  renderManageRows();
+};
+
+btnSaveSites.onclick = () => {
+  const rows = Array.from(sitesContainer.querySelectorAll(".site-row"));
+  const updated = [];
+  for(const row of rows){
+    const idx = Number(row.dataset.index);
+    const original = sites[idx] || {};
+    const name = row.querySelector(".mf-name").value.trim() || "Untitled";
+    const url = row.querySelector(".mf-url").value.trim();
+    const cat = row.querySelector(".mf-cat").value;
+    const enabled = row.querySelector(".mf-enabled").checked;
+    if(!url) continue;
+    updated.push({
+      id: original.id || ("custom_" + Date.now() + "_" + Math.random().toString(16).slice(2)),
+      name, url, category:cat, enabled
+    });
+  }
+  sites = updated;
+  saveSites();
+  renderChips();
+  backdrop.classList.remove("show");
+};
+
+/* ---------- INIT ---------- */
+
+renderChips();
+</script>
+
+</body>
+</html>
