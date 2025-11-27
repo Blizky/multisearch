@@ -5,6 +5,9 @@ Type a term once, pick a category (Videos / Photos / Public Domain / PNGs), and 
 
 > To open several sites at once, your browser must allow pop-ups for this page.
 
+#### Visit this page and save it.
+https://blizky.github.io/multisearch/MultiSearch.html
+
 ---
 ![CleanShot 2025-11-26 at 22 45 25](https://github.com/user-attachments/assets/6610ef2c-d8c2-454e-b12d-df31f590c7de)
 
