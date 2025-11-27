@@ -3,10 +3,10 @@
 Multi-Search is a tiny single-page tool to search **multiple free-media websites at once**.  
 Type a term once, pick a category (Videos / Photos / Public Domain / PNGs), and it opens all the enabled sites in new tabs.
 
-> To open several sites at once, your browser must allow pop-ups for this page.
+**Visit this page to use it:**
+https://blizky.github.io/multisearch
 
-#### Visit this page and save it.
-https://blizky.github.io/multisearch/MultiSearch.html
+⚠️ **To open several sites at once, your browser must allow pop-ups for this page.**
 
 ---
 ![CleanShot 2025-11-26 at 22 45 25](https://github.com/user-attachments/assets/6610ef2c-d8c2-454e-b12d-df31f590c7de)
