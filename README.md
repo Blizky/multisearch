@@ -140,6 +140,10 @@ Search something, go back to the Multi-Search page and click **Preferences**
 ![CleanShot 2025-11-27 at 10 38 18](https://github.com/user-attachments/assets/7b7cda05-108a-4b37-9fe6-738d48b69fa9)
 
 ---
+
+[![Ko-Fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/blizky)
+
+
 ## Is Multi-Search legal? (Short answer: Yes.)
 
 MultiSearch is safe to use and does not violate any website’s terms. Here’s why:
