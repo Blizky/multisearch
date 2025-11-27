@@ -36,7 +36,7 @@ body.theme-light {
   --bg-main: radial-gradient(circle at top, #E8F6FB 0%, #F4FBFF 40%, #E9F2F7 100%);
   --text-main:#102028;
   --text-muted:#5b6a74;
-  --accent-primary: #F0A800;
+  --accent-primary: #0099CC; /* title blue in day mode */
   --accent-secondary: #0077AA;
   --accent-soft: rgba(0,119,170,0.10);
   --card-bg: rgba(255,255,255,0.98);
@@ -63,6 +63,47 @@ body{
   transition:background .35s ease, color .2s ease;
 }
 
+/* Top warning banner ------------------------------------------- */
+.top-banner{
+  position:fixed;
+  top:0; left:0; right:0;
+  z-index:40;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:6px 14px;
+  font-size:12px;
+  background:linear-gradient(90deg, rgba(255,204,51,0.22), rgba(255,204,51,0.06));
+  color:var(--accent-primary);
+  border-bottom:1px solid rgba(255,204,51,0.75);
+  backdrop-filter:blur(6px);
+}
+body.theme-light .top-banner{
+  background:linear-gradient(90deg, rgba(255,204,51,0.20), rgba(255,204,51,0.04));
+  color:#8a6a00;
+  border-bottom-color:rgba(218,165,32,0.8);
+}
+.top-banner.hidden{display:none;}
+.top-banner .warn-main{
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+.top-banner .warn-emoji{
+  font-size:14px;
+}
+.top-banner button{
+  border-radius:999px;
+  border:1px solid currentColor;
+  background:transparent;
+  color:inherit;
+  padding:4px 10px;
+  font-size:11px;
+  cursor:pointer;
+}
+
+/* Shell -------------------------------------------------------- */
 .shell{
   width:min(1100px,100%);
   background:var(--card-bg);
@@ -70,6 +111,7 @@ body{
   padding:20px 22px 26px;
   border:1px solid var(--border-soft);
   box-shadow:0 18px 50px rgba(0,0,0,.45);
+  margin-top:32px; /* so it doesn't hide under banner */
 }
 
 /* Header -------------------------------------------------- */
@@ -88,8 +130,8 @@ body{
 .title{
   margin:0;
   font-family:"League Spartan", Inter, system-ui, sans-serif;
-  font-size: clamp(32px,4vw,44px);
-  letter-spacing:.12em;
+  font-size: clamp(34px,4.4vw,48px);
+  letter-spacing:.08em;           /* a bit tighter */
   text-transform:uppercase;
   color:var(--accent-primary);
 }
@@ -175,6 +217,7 @@ body.theme-light .btn-ghost{
 .input-wrap{
   flex:1 1 260px;
   min-width:220px;
+  max-width:640px;
   position:relative;
 }
 .input-wrap input{
@@ -289,6 +332,9 @@ body.theme-light .btn-ghost{
 .footer-left a{
   color:var(--accent-secondary);
   text-decoration:none;
+}
+body.theme-light .footer-left a{
+  color:var(--bl-blue);
 }
 .footer-left .version{
   font-family:monospace;
@@ -414,7 +460,7 @@ body.theme-light .site-row button.remove{
 /* Responsive -------------------------------------------------- */
 @media (max-width:720px){
   body{padding:18px 8px;}
-  .shell{padding:16px 14px 20px;}
+  .shell{padding:16px 14px 20px; margin-top:40px;}
   .site-row{
     grid-template-columns:minmax(130px,2fr) minmax(130px,2fr);
     grid-auto-rows:auto;
@@ -427,6 +473,17 @@ body.theme-light .site-row button.remove{
 </style>
 </head>
 <body>
+
+<!-- Popup warning at very top -->
+<div class="top-banner hidden" id="popupWarn">
+  <div class="warn-main">
+    <span class="warn-emoji">⚠️</span>
+    <span id="popupWarnText">
+      To open multiple sites at once, please allow pop-ups for this page.
+    </span>
+  </div>
+  <button id="popupWarnBtn">Got it</button>
+</div>
 
 <div class="shell">
   <!-- HEADER -->
@@ -486,7 +543,7 @@ body.theme-light .site-row button.remove{
   <!-- FOOTER (controls + credits) -->
   <div class="footer-bar">
     <div class="footer-left">
-      <span id="creditsLabel">Made by Alex Blizky· feedback:</span>
+      <span id="creditsLabel">Made by Alex Blizky · feedback:</span>
       <a href="mailto:multisearch@blizlab.com">multisearch@redxolo.com</a>
       <span class="version" id="versionLabel">20251126</span>
     </div>
@@ -498,13 +555,13 @@ body.theme-light .site-row button.remove{
         <span id="manageLabel">Manage sites</span>
       </button>
 
-      <!-- Language -->
+      <!-- Language toggle -->
       <div class="pill-group" id="lang-group">
         <button id="lang-en" class="active"><span class="flag">🇺🇸</span><span>EN</span></button>
         <button id="lang-es"><span class="flag">🇪🇸</span><span>ES</span></button>
       </div>
 
-      <!-- Night / Day with monochrome icons -->
+      <!-- Night / Day with icons -->
       <div class="pill-group theme-toggle" id="theme-group">
         <button id="btn-night" class="active" title="Night mode" aria-label="Night mode">
           <!-- Moon -->
@@ -547,9 +604,10 @@ body.theme-light .site-row button.remove{
 <input type="file" id="import-file" accept="application/json" style="display:none">
 
 <script>
-const KEY_SITES = "ms-sites-v4";
-const KEY_THEME = "ms-theme";
-const KEY_LANG  = "ms-lang";
+const KEY_SITES  = "ms-sites-v4";
+const KEY_THEME  = "ms-theme";
+const KEY_LANG   = "ms-lang";
+const KEY_POPUP  = "ms-popup-seen";
 
 const DEFAULT_SITES = [
   { id:"pixabay_v",  name:"Pixabay (video)", category:"videos",
@@ -622,7 +680,9 @@ const I18N = {
     btnExport: "Export",
     btnImport: "Import",
     modalFoot: "Use %S in the URL where the search term should go.",
-    creditsLabel: "Made by Alex Blizky · feedback:"
+    creditsLabel: "Made by Alex Blizky · feedback:",
+    popupText: "To open multiple sites at once, please allow pop-ups for this page.",
+    popupBtn: "Got it"
   },
   es: {
     subtitle: "Busca en varios sitios de medios gratuitos a la vez — videos, fotos, dominio público y recortes PNG.",
@@ -645,7 +705,9 @@ const I18N = {
     btnExport: "Exportar",
     btnImport: "Importar",
     modalFoot: "Usa %S en la URL donde debe ir el término de búsqueda.",
-    creditsLabel: "Hecho por Alex Blizky · contacto:"
+    creditsLabel: "Hecho por Alex Blizky · contacto:",
+    popupText: "Para abrir varios sitios a la vez, permite las ventanas emergentes (pop-ups) de esta página.",
+    popupBtn: "Entendido"
   }
 };
 
@@ -672,6 +734,8 @@ function applyLang(lang){
   btnImportSites.textContent = d.btnImport;
   modalFootNote.innerHTML = d.modalFoot.replace("%S","<code>%S</code>");
   creditsLabel.textContent = d.creditsLabel;
+  popupWarnText.textContent = d.popupText;
+  popupWarnBtn.textContent = d.popupBtn;
 
   localStorage.setItem(KEY_LANG, lang);
   langEn.classList.toggle("active", lang==="en");
@@ -868,6 +932,9 @@ const btnNight      = document.getElementById("btn-night");
 const btnDay        = document.getElementById("btn-day");
 const langEn        = document.getElementById("lang-en");
 const langEs        = document.getElementById("lang-es");
+const popupWarn     = document.getElementById("popupWarn");
+const popupWarnText = document.getElementById("popupWarnText");
+const popupWarnBtn  = document.getElementById("popupWarnBtn");
 
 /* events -------------------------------------------------------- */
 btnVideosMain.onclick = ()=>searchCategory("videos");
@@ -933,10 +1000,28 @@ importFile.addEventListener("change",e=>{
 langEn.onclick = ()=>applyLang("en");
 langEs.onclick = ()=>applyLang("es");
 
+/* popup banner ------------------------------------------------- */
+popupWarnBtn.onclick = ()=>{
+  popupWarn.classList.add("hidden");
+  localStorage.setItem(KEY_POPUP,"1");
+};
+
 /* init --------------------------------------------------------- */
 renderChips();
 setTheme(localStorage.getItem(KEY_THEME) || "dark");
-applyLang(localStorage.getItem(KEY_LANG) || "en");
+
+// initial language: stored -> browser -> EN
+const storedLang = localStorage.getItem(KEY_LANG);
+const browserLang = (navigator.language || navigator.userLanguage || "en").toLowerCase();
+const initialLang = storedLang || (browserLang.startsWith("es") ? "es" : "en");
+applyLang(initialLang);
+
+// show popup once per browser
+if(localStorage.getItem(KEY_POPUP)==="1"){
+  popupWarn.classList.add("hidden");
+}else{
+  popupWarn.classList.remove("hidden");
+}
 </script>
 
 </body>
