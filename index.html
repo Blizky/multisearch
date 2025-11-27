@@ -471,6 +471,16 @@ body.theme-light .site-row button.remove{
   }
 }
 </style>
+
+<link rel="icon" 
+      type="image/svg+xml" 
+      href='data:image/svg+xml;utf8,
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <rect width="64" height="64" fill="%230099CC"/>
+  <circle cx="28" cy="28" r="14" stroke="%23FFCC33" stroke-width="6" fill="none"/>
+  <line x1="38" y1="38" x2="50" y2="50" stroke="%23FFCC33" stroke-width="6" stroke-linecap="round"/>
+</svg>'>
+
 </head>
 <body>
 
@@ -616,8 +626,6 @@ const DEFAULT_SITES = [
     url:"https://www.pexels.com/search/videos/%S/", enabled:true },
   { id:"mixkit_v",   name:"Mixkit", category:"videos",
     url:"https://mixkit.co/free-stock-video/%S/", enabled:true },
-  { id:"videvo_v",   name:"Videvo (video)", category:"videos",
-    url:"https://www.videvo.net/search/%S/", enabled:true },
   { id:"freepik_v",  name:"Freepik (FREE video)", category:"videos",
     url:"https://www.freepik.com/search?format=search&last_filter=selection&last_value=1&query=%S&selection=1&type=video",
     enabled:true },
@@ -628,11 +636,6 @@ const DEFAULT_SITES = [
     url:"https://www.pexels.com/search/%S/", enabled:true },
   { id:"unsplash_p", name:"Unsplash", category:"photos",
     url:"https://unsplash.com/s/photos/%S", enabled:true },
-  { id:"videvo_p",   name:"Videvo (stills)", category:"photos",
-    url:"https://www.videvo.net/search/%S/?media_type=photo", enabled:false },
-  { id:"flickr_p",   name:"Flickr (CU)", category:"photos",
-    url:"https://www.flickr.com/search/?text=%S&license=4,5,6,9,10,11,12,13&content_types=0&media=photos&safe_search=1",
-    enabled:true },
   { id:"freepik_p",  name:"Freepik (FREE photos)", category:"photos",
     url:"https://www.freepik.com/search?format=search&last_filter=selection&last_value=1&query=%S&selection=1&type=photo",
     enabled:true },
@@ -642,15 +645,11 @@ const DEFAULT_SITES = [
   { id:"commons_pd", name:"Wikimedia Commons", category:"public",
     url:"https://commons.wikimedia.org/w/index.php?search=%S&title=Special%3AMediaSearch&type=image",
     enabled:true },
-  { id:"rawpixel_pd",name:"RawPixel (PD)", category:"public",
-    url:"https://www.rawpixel.com/search/%S?public_domain=1", enabled:true },
-  { id:"openverse_pd",name:"OpenVerse (CC0)", category:"public",
-    url:"https://openverse.org/search?q=%S&license_type=cc0", enabled:true },
 
   { id:"kindpng_png", name:"KindPNG", category:"png",
     url:"https://www.kindpng.com/free/%S/", enabled:true },
-  { id:"pngkey_png",  name:"PNGKey", category:"png",
-    url:"https://www.pngkey.com/free/%S/", enabled:true },
+  { id:"Openverse_png",  name:"Openverse", category:"png",
+    url:"https://openverse.org/search/image?q=%S", enabled:true },
   { id:"pngegg_png",  name:"PngEgg", category:"png",
     url:"https://www.pngegg.com/en/search?q=%S", enabled:true }
 ];
