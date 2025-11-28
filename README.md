@@ -136,8 +136,8 @@ Using the local version is great if you want speed, portability, or a backup whe
 
 Search something, go back to the Multi-Search page and click **Preferences**
 
-![CleanShot 2025-11-27 at 10 27 52](https://github.com/user-attachments/assets/9a2aa2ce-96fb-43d5-857a-f8c9501ec589) 
-![CleanShot 2025-11-27 at 10 38 18](https://github.com/user-attachments/assets/7b7cda05-108a-4b37-9fe6-738d48b69fa9)
+![2](https://github.com/user-attachments/assets/d5f410b2-1ea8-4d28-9b28-05923c9cc313)
+![1](https://github.com/user-attachments/assets/79e1f21a-08c6-4d32-be49-5d1974ec9a0d)
 
 ---
 
